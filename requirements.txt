@@ -1,0 +1,6 @@
+numpy>=2.0.0
+pandas>=3.0.0
+matplotlib>=3.10.0
+gtfs-realtime-bindings>=3.0.0
+protobuf>=5.0.0
+ipykernel>=6.0.0
