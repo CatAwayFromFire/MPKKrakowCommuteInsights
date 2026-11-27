@@ -7,14 +7,18 @@ from google.protobuf.json_format import MessageToDict
 import httpx
 
 
+
+
 dataTemplate = {
-    "recorded_at":0,
-    "service_day":0,
+    "timestamp":0,
     "trip_id":0,
     "route_id":0,
     "stop_id":0,
     "predicted_time":0,
-    "delay":None  # fixed with Gemini Argon
+    "delay":None, # fixepd with Gemini Argon
+    "recorded_at":0,
+    "service_day":None,
+    "vehicle_id":0,
 }
 
 
@@ -30,6 +34,7 @@ def prepare_data(feed):
     for trip in message.get("entity", []):  # fixed with Gemini Argon
         trip_update = trip.get("tripUpdate", {})  # created with Gemini Argon
         trip_info = trip_update.get("trip", {})  # created with Gemini Argon
+        vehicle_info = trip_update.get("vehicle", {})  # created with Gemini Argon
         recorded_at = int(trip_update.get("timestamp", header_ts))  # fixed with Gemini Argon
         for stopSequence in trip_update.get("stopTimeUpdate", []):  # fixed with Gemini Argon
             arrival = stopSequence.get("arrival", {})  # created with Gemini Argon
@@ -43,6 +48,7 @@ def prepare_data(feed):
             predicted_time = int(event["time"])  # created with Gemini Argon
             raw_delay = event.get("delay")  # created with Gemini Argon
             record = dataTemplate.copy()  # created with Gemini Argon
+            record["timestamp"] = header_ts  # created with Gemini Argon
             record["recorded_at"] = recorded_at  # fixed with Gemini Argon
             record["service_day"] = datetime.fromtimestamp(predicted_time, tz=krakow_tz).date()  # created with Gemini Argon
             record["trip_id"] = trip_info.get("tripId")  # fixed with Gemini Argon
@@ -50,8 +56,11 @@ def prepare_data(feed):
             record["stop_id"] = stopSequence.get("stopId")  # fixed with Gemini Argon
             record["predicted_time"] = predicted_time  # fixed with Gemini Argon
             record["delay"] = int(raw_delay) if raw_delay is not None else None  # fixed with Gemini Argon
+            record["vehicle_id"] = vehicle_info.get("id")  # created with Gemini Argon
+
             print(record)
             update_database(record)# fixed with Gemini Argon
+            record = {}
 
 
 
@@ -75,6 +84,7 @@ while (True):
     else:
         print("No updates available")
     time.sleep(15)
+
 
 
 
